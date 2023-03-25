@@ -22,7 +22,8 @@ async function run(){
 
         app.get('/appointmentOptions',async(req,res) => {
             const query = {};
-
+            const options = await appointmentOptionCollection.find(query).toArray();
+            res.send(options)
         })
 
     }
