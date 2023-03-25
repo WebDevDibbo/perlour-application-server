@@ -19,11 +19,27 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run(){
     try{
         const appointmentOptionCollection = client.db('perlourApplication').collection('appointmentOptions');
+        const bookingsCollection = client.db('perlourApplication').collection('bookings');
 
         app.get('/appointmentOptions',async(req,res) => {
+            const date = req.query.date;
             const query = {};
             const options = await appointmentOptionCollection.find(query).toArray();
+            const bookingQuery = {appointmentDate : date};
+            const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
+            options.forEach(option => {
+                const optionBooked = alreadyBooked.filter(book => book.treatment === option.name)
+                const bookedSlots = optionBooked.map(bookSlot => bookSlot.slot );
+                const remainingSlots = option.slots.filter(slot => !bookedSlots.includes(slot))
+                option.slots = remainingSlots;
+                console.log(date,option.name,remainingSlots.length);
+            })
             res.send(options)
+        })
+        app.post('/bookings',async(req,res) => {
+            const booking = req.body;
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result)
         })
 
     }
