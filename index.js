@@ -59,9 +59,17 @@ async function run(){
             const result = await usersCollection.find(query).toArray();
             res.send(result)
         })
-        app.put('/users/admin/:id',async(req,res) => {
+        app.get('/users/admin/:email',async(req,res) => {
+
             const id = req.params.id;
-            const filter =  { _id : new ObjectId(id)};
+            const query = {_id : new ObjectId(id)};
+            const user = await usersCollection.findOne(query);
+            res.send({isAdmin: user?.role === 'admin'})
+        })
+
+        app.put('/users/admin/:id',async(req,res) => {
+            const email = req.params.email;
+            const filter =  {email};
             const options = { upsert: true };
             const updatedDoc = {
                 $set:{
